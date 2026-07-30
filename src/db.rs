@@ -44,14 +44,33 @@ impl Database {
     }
 
     pub fn save_workspace(&self, ws: &Workspace) -> Result<()> {
+        let name = self
+            .conn
+            .query_row(
+                "SELECT EXISTS(SELECT name FROM repos WHERE name = ?1 AND id != ?2)",
+                [&ws.name, &ws.id],
+                |row| row.get::<_, bool>(0),
+            )
+            .map(|exists| match exists {
+                true => {
+                    println!("The workspace {} already exists, falling back", &ws.name);
+
+                    self.conn
+                        .query_one("SELECT name FROM repos WHERE id = ?1", [&ws.id], |row| {
+                            Ok(row.get::<_, String>(0)?)
+                        })
+                }
+                false => Ok(ws.name.clone()),
+            })??;
+
         self.delete_workspace(&ws.id)?;
 
         self.conn
             .execute(
                 "INSERT INTO repos (id, name, shell, default_profile) VALUES (?1, ?2, ?3, ?4)",
-                [&ws.id, &ws.name, &ws.shell, &ws.default_profile],
+                [&ws.id, &name, &ws.shell, &ws.default_profile],
             )
-            .with_context(|| format!("Failed to save workspace '{}'", ws.name))?;
+            .with_context(|| format!("Failed to save workspace '{}'", name))?;
 
         let mut stmt = self
             .conn

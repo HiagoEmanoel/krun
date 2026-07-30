@@ -6,11 +6,11 @@ use std::io::{self, Write};
 #[group(required = false, multiple = false)]
 pub struct CommonArgs {
     /// Set target directory
-    #[arg(short, long)]
+    #[arg(short, long, global = true)]
     pub dir: Option<String>,
 
     /// Set target workspace by name
-    #[arg(short, long)]
+    #[arg(short, long, global = true)]
     pub workspace: Option<String>,
 }
 
@@ -46,6 +46,8 @@ pub enum Commands {
     /// Register a new directory or repository
     Init,
 
+    /// List all workspaces
+    List,
     /// Delete target workspace configuration
     Remove,
 

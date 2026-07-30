@@ -21,7 +21,7 @@ fn main() -> Result<()> {
         )
     })?;
 
-    exec::run_script(&ws.shell, &profile_data.content)?;
+    exec::run_script(&ws.shell, &profile_data.content, &env.dir)?;
 
     Ok(())
 }

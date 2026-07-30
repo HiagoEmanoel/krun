@@ -26,7 +26,7 @@ fn main() -> Result<()> {
 
             let workspace_id = identity::resolve_id(&env.dir)?;
             let initial_ws = Workspace::new(&workspace_id, dir_name);
-            let raw_text = editor::open_in_editor(&initial_ws.to_text())?;
+            let raw_text = exec::open_in_editor(&initial_ws.to_text())?;
 
             if let Some(parsed_ws) = Workspace::from_text(&workspace_id, &raw_text) {
                 env.db.save_workspace(&parsed_ws)?;
@@ -42,7 +42,7 @@ fn main() -> Result<()> {
                 || "Workspace not found.\nHint: Run 'qrun --init' to set up this directory.",
             )?;
 
-            let edited_text = editor::open_in_editor(&ws.to_text())?;
+            let edited_text = exec::open_in_editor(&ws.to_text())?;
 
             if let Some(parsed_ws) = Workspace::from_text(&ws.id, &edited_text) {
                 env.db.save_workspace(&parsed_ws)?;
@@ -82,7 +82,7 @@ fn main() -> Result<()> {
                     )
                 })?;
 
-            exec::run_script(&ws.shell, &profile_data.content)?;
+            exec::run_script(&ws.shell, &profile_data.content, &env.dir)?;
         }
     }
 
