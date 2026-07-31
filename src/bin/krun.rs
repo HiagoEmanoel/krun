@@ -39,7 +39,7 @@ fn main() -> Result<()> {
 
         Commands::Edit => {
             let ws = env.get_workspace()?.with_context(
-                || "Workspace not found.\nHint: Run 'qrun --init' to set up this directory.",
+                || "Workspace not found.\nHint: Run 'krun --init' to set up this directory.",
             )?;
 
             let edited_text = exec::open_in_editor(&ws.to_text())?;
@@ -53,10 +53,33 @@ fn main() -> Result<()> {
             return Ok(());
         }
 
+        Commands::List => {
+            let Some(workspaces) = env.db.list_workspaces()? else {
+                println!("No workspaces found");
+                return Ok(());
+            };
+
+            for ws in &workspaces {
+                println!("{}", ws.name);
+
+                let total_profiles = ws.profiles.len();
+                for (i, p) in ws.profiles.iter().enumerate() {
+                    let prefix = if i == total_profiles - 1 {
+                        "└─"
+                    } else {
+                        "├─"
+                    };
+                    println!("  {} {}", prefix, p.name);
+                }
+            }
+
+            return Ok(());
+        }
+
         Commands::Remove => {
             let ws = env
                 .get_workspace()?
-                .with_context(|| "Workspace not found.\nHint: Run 'qrun --init' first.")?;
+                .with_context(|| "Workspace not found.\nHint: Run 'krun --init' first.")?;
 
             if cli::confirm(&format!(
                 "Are you sure you want to delete workspace '{}'?",
@@ -70,14 +93,14 @@ fn main() -> Result<()> {
 
         Commands::Run { profile } => {
             let ws = env.get_workspace()?.with_context(|| {
-                    "Workspace not initialized for this directory.\nHint: Run 'qrun --init' to get started."
+                    "Workspace not initialized for this directory.\nHint: Run 'krun --init' to get started."
                 })?;
 
             let target_profile = profile.as_deref().unwrap_or(&ws.default_profile);
 
             let profile_data = ws.get_profile(target_profile).with_context(|| {
                     format!(
-                        "Profile '{}' not found in workspace '{}'.\nHint: Run 'qrun --edit' to add this profile.",
+                        "Profile '{}' not found in workspace '{}'.\nHint: Run 'krun --edit' to add this profile.",
                         target_profile, ws.name
                     )
                 })?;

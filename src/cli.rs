@@ -48,6 +48,7 @@ pub enum Commands {
 
     /// List all workspaces
     List,
+
     /// Delete target workspace configuration
     Remove,
 
